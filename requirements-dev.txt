@@ -1,0 +1,23 @@
+# Development dependencies for Reltio MCP Strands Client
+# Install runtime dependencies first: pip install -r requirements.txt
+# Then install development dependencies: pip install -r requirements-dev.txt
+
+# Include runtime dependencies
+-r requirements.txt
+
+# Testing dependencies
+pytest>=8.4.1
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+
+# Code quality and formatting
+ruff>=0.12.4
+black>=25.1.0
+mypy>=1.17.0
+types-requests>=2.31.0.20240125
+flake8>=7.0.0
+isort>=5.13.2
+
+# Development utilities
+pre-commit>=3.6.0
+coverage>=7.4.0 

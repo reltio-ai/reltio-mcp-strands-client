@@ -1,0 +1,9 @@
+# Core runtime dependencies for Reltio MCP Strands Client
+requests>=2.32.4
+python-dotenv>=1.1.1
+openai>=1.97.0
+anthropic>=0.58.2
+strands-agents>=1.0.1
+strands-agents-tools>=0.2.1
+rich>=14.0.0
+PyYAML>=6.0.0 

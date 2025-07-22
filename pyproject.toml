@@ -1,0 +1,171 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reltio-mcp-strands-client"
+version = "0.1.0"
+description = "Reltio AgentFlow MCP Server client built on the Strands AI Agents Framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Reltio, Inc.", email = "support@reltio.com"}
+]
+keywords = ["reltio", "mcp", "strands", "ai-agents", "enterprise", "oauth", "agentflow"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "requests>=2.32.4",
+    "python-dotenv>=1.1.1",
+    "openai>=1.97.0",
+    "anthropic>=0.58.2",
+    "strands-agents>=1.0.1",
+    "strands-agents-tools>=0.2.1",
+    "rich>=14.0.0",
+    "PyYAML>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.12.4",
+    "black>=25.1.0",
+    "pre-commit>=3.6.0",
+    "mypy>=1.17.0",
+    "types-requests>=2.31.0.20240125",
+    "coverage>=7.4.0",
+    "flake8>=7.0.0",
+    "isort>=5.13.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/reltio-ai/reltio-mcp-strands-client"
+Repository = "https://github.com/reltio-ai/reltio-mcp-strands-client.git"
+Issues = "https://github.com/reltio-ai/reltio-mcp-strands-client/issues"
+
+[project.scripts]
+reltio-mcp-strands-health = "strands_client.health_check:main"
+reltio-mcp-strands-chat = "strands_client.chat:main"
+reltio-mcp-strands-task = "strands_client.task:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["config*", "strands_client*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml", "*.json"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings  
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-string-normalization = false
+line-ending = "auto"
+
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "strands_sdk.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["config", "strands_client"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["config", "strands_client"]
+known_third_party = ["pytest", "requests", "dotenv"] 
