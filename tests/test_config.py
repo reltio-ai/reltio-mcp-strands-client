@@ -92,7 +92,7 @@ def test_get_system_prompt_fallback():
     with patch('os.path.exists', return_value=False):
         prompt = config.get_system_prompt()
         assert "helpful AI assistant" in prompt
-        assert "Reltio MCP AgentFlow MCP Server tools" in prompt
+        assert "Reltio AgentFlow MCP Server tools" in prompt
 
 
 def test_get_system_prompt_from_file():
@@ -124,4 +124,4 @@ def test_get_system_prompt_empty_file():
         
         prompt = config.get_system_prompt()
         assert "helpful AI assistant" in prompt
-        assert "Reltio MCP AgentFlow MCP Server tools" in prompt
+        assert "Reltio AgentFlow MCP Server tools" in prompt

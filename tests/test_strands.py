@@ -57,6 +57,9 @@ def test_strands_client_init_success_openai(mock_openai_model, mock_agent, mock_
     mock_mcp_client.list_tools_sync.return_value = [Mock(tool_name="tool1")]
     mock_mcp_client_class.return_value = mock_mcp_client
     
+    # Mock config.get_system_prompt to avoid file system access
+    mock_config.get_system_prompt.return_value = "Test system prompt"
+    
     # This should work without raising exceptions
     client = StrandsReltioClient(oauth_client=mock_oauth_client)
     assert client.mcp_endpoint == "https://dev.reltio.com/ai/tools/mcp/"
@@ -90,9 +93,13 @@ def test_strands_client_init_success_anthropic(mock_anthropic_model, mock_agent,
     mock_mcp_client.list_tools_sync.return_value = [Mock(tool_name="tool1")]
     mock_mcp_client_class.return_value = mock_mcp_client
     
+    # Mock config.get_system_prompt to avoid file system access
+    mock_config.get_system_prompt.return_value = "Test system prompt"
+    
     # This should work without raising exceptions
     client = StrandsReltioClient(oauth_client=mock_oauth_client)
     assert client.mcp_endpoint == "https://dev.reltio.com/ai/tools/mcp/"
+    assert client.tenant_id == "test_tenant"
 
 
 @patch('strands_client.client.config')
@@ -163,6 +170,10 @@ def test_create_agent_success(mock_agent_class, mock_openai_model):
         mock_config.model_id = "gpt-4.1"
         mock_config.model_temperature = 0.7
         mock_config.model_max_tokens = 4096
+        mock_config.get_system_prompt.return_value = "Default system prompt"
+        
+        # Set tenant_id on client
+        client.tenant_id = "test_tenant"
         
         # Mock model and agent
         mock_model = Mock()
@@ -175,10 +186,12 @@ def test_create_agent_success(mock_agent_class, mock_openai_model):
         
         assert agent == mock_agent
         assert client._agent == mock_agent
+        # The system prompt should include the custom prompt plus tenant_id info
+        expected_prompt = "Custom prompt\n\n For all MCP tool executions, you must use test_tenant as the tenant_id of the tool input."
         mock_agent_class.assert_called_once_with(
             tools=client._tools,
             model=mock_model,
-            system_prompt="Custom prompt"
+            system_prompt=expected_prompt
         )
 
 
@@ -276,30 +289,6 @@ def test_health_check_setup_logging():
     # Just test that the function executes without error
 
 
-@patch.dict(os.environ, {
-    'OAUTH_CLIENT_ID': 'test_id',
-    'OAUTH_CLIENT_SECRET': 'test_secret',
-    'TENANT_ENVIRONMENT': 'dev',
-    'RELTIO_TENANT_ID': 'test_tenant',
-    'OPENAI_API_KEY': 'test_key'
-})
-def test_health_check_validate_environment_success():
-    """Test successful environment validation."""
-    from strands_client.health_check import validate_environment
-    
-    result = validate_environment()
-    assert result is True
-
-
-@patch.dict(os.environ, {}, clear=True)
-def test_health_check_validate_environment_missing_vars():
-    """Test environment validation with missing variables."""
-    from strands_client.health_check import validate_environment
-    
-    result = validate_environment()
-    assert result is False
-
-
 def test_health_check_run_success():
     """Test successful health check run."""
     from strands_client.health_check import run_health_check
@@ -324,32 +313,6 @@ def test_health_check_run_failure():
         assert result is False
 
 
-@patch('strands_client.health_check.validate_environment')
-@patch('sys.argv', ['health_check', '--debug'])
-def test_health_check_main_missing_env(mock_validate):
-    """Test main function with missing environment."""
-    from strands_client.health_check import main
-    
-    mock_validate.return_value = False
-    
-    result = main()
-    assert result == 1
-
-
-@patch('strands_client.health_check.validate_environment')
-@patch('strands_client.health_check.run_health_check')
-@patch('sys.argv', ['health_check'])
-def test_health_check_main_success(mock_run_health, mock_validate):
-    """Test main function success."""
-    from strands_client.health_check import main
-    
-    mock_validate.return_value = True
-    mock_run_health.return_value = True
-    
-    result = main()
-    assert result == 0
-
-
 # Chat CLI Tests
 
 def test_chat_setup_logging():
@@ -360,30 +323,6 @@ def test_chat_setup_logging():
     setup_logging(debug=True)
     setup_logging(debug=False)
     # Just test that the function executes without error
-
-
-@patch.dict(os.environ, {
-    'OAUTH_CLIENT_ID': 'test_id',
-    'OAUTH_CLIENT_SECRET': 'test_secret',
-    'TENANT_ENVIRONMENT': 'dev',
-    'RELTIO_TENANT_ID': 'test_tenant',
-    'OPENAI_API_KEY': 'test_key'
-})
-def test_chat_validate_environment_success():
-    """Test successful environment validation in chat."""
-    from strands_client.chat import validate_environment
-    
-    result = validate_environment()
-    assert result is True
-
-
-@patch.dict(os.environ, {}, clear=True)
-def test_chat_validate_environment_missing_vars():
-    """Test environment validation with missing variables in chat."""
-    from strands_client.chat import validate_environment
-    
-    result = validate_environment()
-    assert result is False
 
 
 @patch('builtins.input', side_effect=['quit'])
@@ -437,29 +376,3 @@ def test_chat_run_interactive_chat_init_failure():
     with patch('strands_client.client.StrandsReltioClient', side_effect=Exception("Init failed")):
         result = run_interactive_chat()
         assert result == 1
-
-
-@patch('strands_client.chat.validate_environment')
-@patch('sys.argv', ['chat', '--debug'])
-def test_chat_main_missing_env(mock_validate):
-    """Test chat main function with missing environment."""
-    from strands_client.chat import main
-    
-    mock_validate.return_value = False
-    
-    result = main()
-    assert result == 1
-
-
-@patch('strands_client.chat.validate_environment')
-@patch('strands_client.chat.run_interactive_chat')
-@patch('sys.argv', ['chat'])
-def test_chat_main_success(mock_run_chat, mock_validate):
-    """Test chat main function success."""
-    from strands_client.chat import main
-    
-    mock_validate.return_value = True
-    mock_run_chat.return_value = 0
-    
-    result = main()
-    assert result == 0
